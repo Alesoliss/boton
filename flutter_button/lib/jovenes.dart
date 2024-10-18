@@ -9,76 +9,30 @@ class JovenesScreen extends StatefulWidget {
   _JovenesScreenState createState() => _JovenesScreenState();
 }
 
-class _JovenesScreenState extends State<JovenesScreen> {
+class _JovenesScreenState extends State<JovenesScreen> with TickerProviderStateMixin {
   Timer? _timer;
   int _currentQuestionIndex = 0;
-  final AudioPlayer _audioPlayer =
-      AudioPlayer(); // Control del audio del tic-tac
+  final AudioPlayer _audioPlayer = AudioPlayer(); // Control del audio del tic-tac
   String _currentTime = ''; // Variable para mostrar la hora actual
   bool _isRunning = true; // Estado del temporizador
   bool _isPaused = false; // Estado de pausa del temporizador
 
-  final List<Map<String, String>> _questions = [
+  final List<Map<String, dynamic>> _questions = [
     {
       'question': '¿Cuántos libros tiene la Biblia?',
+      'icon': Icons.book,
     },
     {
       'question': '¿Cómo se clasifican los libros de la Biblia?',
+      'icon': Icons.library_books,
     },
     {
       'question': '¿Qué día creó Dios la luna y el sol?',
+      'icon': Icons.wb_sunny,
     },
     {
       'question': '¿Cuál fue el primer nombre de Abraham?',
-    },
-    {
-      'question':
-          '¿Quién fue la mujer que fue convertida en una estatua de sal?',
-    },
-    {
-      'question': '¿Cuántos años trabajó Jacob por Raquel?',
-    },
-    {
-      'question': '¿Cómo se llamaban los hijos de José?',
-    },
-    {
-      'question': '¿Cómo se le presentó Dios a Moisés?',
-    },
-    {
-      'question': '¿Por qué plaga murieron los primogénitos en Egipto?',
-    },
-    {
-      'question': '¿Quién hizo el becerro de oro?',
-    },
-    {
-      'question': '¿Qué tribu fue consagrada para el sacerdocio?',
-    },
-    {
-      'question': '¿Qué cubría al pueblo de Israel en el día y en la noche?',
-    },
-    {
-      'question': '¿Por qué a María, la hermana de Moisés, le dio lepra?',
-    },
-    {
-      'question': '¿Cuántos espías envió Moisés a la tierra prometida?',
-    },
-    {
-      'question': '¿Por qué Moisés no entró a la tierra prometida?',
-    },
-    {
-      'question': '¿A qué hombre le habló una burra?',
-    },
-    {
-      'question': '¿Qué significa Deuteronomio?',
-    },
-    {
-      'question': '¿Cuántos años pasó el pueblo de Israel en el desierto?',
-    },
-    {
-      'question': '¿Cuál es el evangelio universal?',
-    },
-    {
-      'question': '¿Qué persona escribió más en el Nuevo Testamento?',
+      'icon': Icons.person,
     },
   ];
 
@@ -92,16 +46,14 @@ class _JovenesScreenState extends State<JovenesScreen> {
 
   // Función para iniciar el sonido de tic-tac
   void _startTickTockSound() async {
-    await _audioPlayer.play('assets/ticking_clock.mp3',
-        isLocal: true); // Reproducir sonido local
+    await _audioPlayer.play('assets/ticking_clock.mp3', isLocal: true); // Reproducir sonido local
   }
 
   // Función para iniciar el temporizador
   void _startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 1), (Timer timer) {
       final now = DateTime.now();
-      final formattedTime =
-          "${now.hour}:${now.minute}:${now.second}:${now.millisecond}";
+      final formattedTime = "${now.hour}:${now.minute}:${now.second}:${now.millisecond}";
       if (_isRunning) {
         setState(() {
           _currentTime = formattedTime;
@@ -163,25 +115,34 @@ class _JovenesScreenState extends State<JovenesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Pregunta actual
-            Text(
-              _questions[_currentQuestionIndex]['question']!,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            // Pregunta actual con animación
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: Column(
+                key: ValueKey<int>(_currentQuestionIndex),
+                children: [
+                  // Ícono alusivo a la pregunta
+                  Icon(
+                    _questions[_currentQuestionIndex]['icon'] as IconData,
+                    size: 60,
+                    color: const Color(0xFF4E91FF),
+                  ),
+                  const SizedBox(height: 20),
+                  // Texto de la pregunta
+                  Text(
+                    _questions[_currentQuestionIndex]['question']!,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            // Respuesta actual
-            Text(
-              'R// ${_questions[_currentQuestionIndex]['answer']}',
-              style: const TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
-              ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             // Temporizador
@@ -189,8 +150,8 @@ class _JovenesScreenState extends State<JovenesScreen> {
               _currentTime,
               style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 50),
-            // Botón para pausar o continuar el temporizador
+            const SizedBox(height: 30),
+            // Botón para pausar o continuar el temporizador con diseño de botón rojo
             GestureDetector(
               onTap: _toggleTimer,
               child: Container(
@@ -198,15 +159,23 @@ class _JovenesScreenState extends State<JovenesScreen> {
                 height: 150,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _isPaused ? Colors.green : Colors.red,
+                  gradient: const LinearGradient(
+                    colors: [Colors.red, Colors.redAccent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withOpacity(0.6),
                       spreadRadius: 5,
-                      blurRadius: 15,
+                      blurRadius: 20,
                       offset: const Offset(0, 5),
                     ),
                   ],
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 3,
+                  ),
                 ),
                 child: Center(
                   child: Text(
@@ -220,23 +189,56 @@ class _JovenesScreenState extends State<JovenesScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            // Botones de navegación (Anterior/Siguiente)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (_currentQuestionIndex > 0)
-                    ElevatedButton(
-                      onPressed: _previousQuestion,
-                      child: const Text('Anterior'),
-                    ),
-                  ElevatedButton(
-                    onPressed: _nextQuestion,
-                    child: const Text('Siguiente'),
+            const SizedBox(height: 30),
+            // Botones de navegación (Anterior/Siguiente) alineados abajo
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (_currentQuestionIndex > 0)
+                        GestureDetector(
+                          onTap: _previousQuestion,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4E91FF),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                            child: const Text(
+                              'Anterior',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      GestureDetector(
+                        onTap: _nextQuestion,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4E91FF),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                          child: const Text(
+                            'Siguiente',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],
